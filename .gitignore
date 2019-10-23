@@ -10,3 +10,6 @@ project/plugins/project/
 .lib/
 .bloop/
 .metals/
+
+## JS
+node_modules/
