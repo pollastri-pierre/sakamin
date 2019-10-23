@@ -1,10 +1,14 @@
+const config = require('/etc/sakamin/config.json');
+const kafkaconf = config.kafka;
+const mongoconf = config.mongo;
+
 const kafka = require('kafka-node');
 const Consumer = kafka.Consumer;
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
 
-const mongoConfig = {url: 'mongodb://localhost:27017', dbName: 'sakamin'} // TODO Put config out
-const kafkaConfig = {kafkaHost: 'localhost:9092'}; // TODO Put config out
+const mongoConfig = {url: mongoconf.host, dbName: 'sakamin'} // TODO Put config out
+const kafkaConfig = {kafkaHost: kafkaconf.servers}; // TODO Put config out
 const client = new kafka.KafkaClient();
 const consumer = new Consumer(
         client,

@@ -1,3 +1,6 @@
+const config = require('/etc/sakamin/config.json');
+const kafkaconf = config.kafka;
+
 var request = require('request');
 var sha256 = require('js-sha256');
 var kafka = require('kafka-node'),
@@ -7,7 +10,7 @@ var kafka = require('kafka-node'),
     client = new kafka.KafkaClient();
 
 var options = {
-    kafkaHost: 'localhost:9092', // connect directly to kafka broker (instantiates a KafkaClient)
+    kafkaHost: kafkaconf.servers, // connect directly to kafka broker (instantiates a KafkaClient)
     batch: undefined, // put client batch settings if you need them
     ssl: false, // optional (defaults to false) or tls options hash
     groupId: 'cosmos-synchronizer',
