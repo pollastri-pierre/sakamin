@@ -6,20 +6,6 @@ var kafka = require('kafka-node'),
     HighLevelProducer = kafka.HighLevelProducer,
     client = new kafka.KafkaClient();
 
-    // cosmos_consumer = new Consumer(
-    //     client,
-    //     [
-    //         { topic: 'cosmos'}
-    //     ],
-    //     {
-    //         groupId: 'cosmos-synchronizer',
-    //         autoCommit: true,
-    //         autoCommitIntervalMs: 100,
-    //         fromOffset: false
-    //     }
-    // );
-
-
 var options = {
     kafkaHost: 'localhost:9092', // connect directly to kafka broker (instantiates a KafkaClient)
     batch: undefined, // put client batch settings if you need them
@@ -122,19 +108,27 @@ cosmos_consumer.on('message', function (message) {
                 }
 
                 let message_to_public = [JSON.stringify(update_tx_msg)]
+                payloads = [
+                    {topic: 'tx-stream', messages: message_to_public},
+                ];
                 if (last_txs.length > 0) {
                     const new_height = last_txs.length > 0 ? last_txs[0].height : height
                     const update_height_msg = {
                         type: MSG_UPDATE_STATE_WALLET_TYPE,
                         address: address,
-                        height: new_height
+                        protocol: 'cosmos',
+                        state: {
+                            height: new_height
+                        }
                     }
                     console.log('[Cosmos][Coin Synchronizer][Publish Latest account state]', address, new_height)
-                    message_to_public.push(JSON.stringify(update_height_msg))
+                    console.log(JSON.stringify(update_height_msg))
+                    payloads.push({
+                        topic: 'update-wallet',
+                        messages: JSON.stringify(update_height_msg)
+                    })
                 }
-                payloads = [
-                    {topic: 'cosmos', messages: message_to_public},
-                ];
+
                 producer.send(payloads, function (err, data) {
                     console.log('[Cosmos][Coin Synchronizer][Publish Latest transactions] add', address, flatten_array(format_txs).length, 'transactions')
                 });

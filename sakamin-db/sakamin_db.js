@@ -4,7 +4,7 @@ var kafka = require('kafka-node'),
     cosmos_consumer = new Consumer(
         client,
         [
-            { topic: 'cosmos'}
+            { topic: 'tx-stream'}
         ],
         {
             autoCommit: true
@@ -36,6 +36,5 @@ cosmos_consumer.on('message', function (message) {
         }
     } catch(error){
         console.error('wrong json for message', message.value);
-        console.log(error)
     }
 });
