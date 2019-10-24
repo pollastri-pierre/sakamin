@@ -1,5 +1,6 @@
 const restify = require('restify');
 const MongoClient = require('mongodb').MongoClient;
+var errors = require('restify-errors');
 
 // CONFIG
 const mongoConfig = {url: 'mongodb://localhost:27017', dbName: 'sakamin'} // TODO Put config out
@@ -25,19 +26,23 @@ mongoClient.connect().then(function () {
     server.get('/:protocol/:address/transactions', function (req, res, next) {
         const owner = req.params.protocol + ":" + req.params.address
         get_transactions(owner, transactions).then(function (txs) {
-            res.send({txs: txs})
-            next()
+            if (txs.length > 0) {
+                res.send({txs: txs});
+                next();
+            } else {
+                next(new errors.NotFoundError("No transaction found for " + owner));
+            }
         })
     });
 
     server.get('/:protocol/:address/account', function (req, res, next) {
         const owner = req.params.protocol + ":" + req.params.address
         get_last_account_update(owner, account_updates).then(function (account) { // TODO will fail if first sync
-            if (account.length > 0)
+            if (account.length > 0) {
                 res.send(account[0])
-            else
-                res.send({})
-            next()
+            } else {
+                next(new errors.NotFoundError("No account found for " + owner))
+            }
         })
     });
 

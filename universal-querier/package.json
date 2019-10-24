@@ -8,6 +8,7 @@
     },
     "dependencies": {
         "mongodb": "^3.3.3",
-        "restify": "^8.4.0"
+        "restify": "^8.4.0",
+        "restify-errors": "^8.0.1"
     }
 }
