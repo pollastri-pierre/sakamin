@@ -12,12 +12,6 @@ const consumer = new Consumer(
     { autoCommit: true, fromOffset: false } // TODO Use a manual commit mamagement otherwise potential data loss
 );
 
-// Connection URL
-const url = 'mongodb://localhost:27017';
-
-// Database Name
-const dbName = 'myproject';
-
 // Create a new MongoClient
 const mongoClient = new MongoClient(mongoConfig.url, {useUnifiedTopology: true});
 
@@ -41,10 +35,16 @@ handlers["register-wallet"] = function (msg, mongo) {
 }
 
 handlers["update-wallet"] = function (msg, mongo) {
-    msg.url = msg.protocol + ":" + msg.key;
+    msg.url = msg.protocol + ":" + msg.address;
+    const wallet = {
+        url: msg.protocol + ":" + msg.address,
+        protocol: msg.protocol,
+        key: msg.address,
+        state: msg.state
+    }
     const db = mongo.db(mongoConfig.dbName)
     const collection = db.collection("wallets")
-    collection.updateOne({url: msg.url}, {$set: msg}, {upsert: true}, function(err) {
+    collection.updateOne({url: wallet.url}, {$set: wallet}, {upsert: true}, function(err) {
         mongo.close()
     })
 }

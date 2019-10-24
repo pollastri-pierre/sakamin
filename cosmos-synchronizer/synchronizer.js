@@ -91,8 +91,8 @@ cosmos_consumer.on('message', function (message) {
         if (jsonMsg.type.localeCompare(MSG_SYNC_TYPE) === 0) {
             let address = jsonMsg.address;
             let height = '';
-            if ('height' in jsonMsg) {
-                height = jsonMsg.height;
+            if (jsonMsg.state) {
+                height = jsonMsg.state.height || 0
             }
             console.log('[Cosmos][Coin Synchronizer][Sync Request] for', address, height)
             request(api_url + address, function (error, response, body) {
@@ -136,6 +136,7 @@ cosmos_consumer.on('message', function (message) {
         }
     } catch(error){
         console.error('wrong json for message', message.value);
+        console.error(error)
     }
 });
 
