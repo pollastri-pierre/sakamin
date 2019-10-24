@@ -40,13 +40,15 @@ producer = new HighLevelProducer(client);
 const MSG_SYNC_TYPE = 'SYNC'
 const MSG_UPDATE_TX_WALLET_TYPE = 'UPDATE_TX_WALLET'
 const MSG_UPDATE_STATE_WALLET_TYPE = 'UPDATE_STATE_WALLET'
-const api_url = 'https://sgapiv2.certus.one/v1/transactions?sender=';
+const base_url = "https://sgapiv2.certus.one/v1"
+const api_url = base_url + '/transactions?sender=';
 
-function to_sakamin_db(raw_tx) {
+function to_sakamin_db(address, raw_tx) {
     return raw_tx.messages.map((tx, idx) => {
         message = JSON.parse(tx.data);
         let amount = 0;
         let to = '';
+        let from = raw_tx.signatures[idx].address
         let fees = 0;
         if ('amount' in message) {
             if (message.amount.length > 1) {
@@ -64,11 +66,14 @@ function to_sakamin_db(raw_tx) {
         }
 
         return {
-            id: sha256(''+raw_tx.hash + idx + tx.type + 'cosmos'),
+            id: sha256(''+raw_tx.hash + idx + tx.type + 'cosmos:' + address),
             type: tx.type,
             amount: amount,
+            owner: 'cosmos:'+address,
+            from: from,
             to: to,
             fees: fees,
+            time: raw_tx.time,
             raw_tx: raw_tx
         }
     })
@@ -80,6 +85,23 @@ function flatten_array(arr) {
 
 function get_tx(height, transactions) {
     return transactions.filter(x => x.height >= ''+height)
+}
+
+function get_account(address) {
+    return new Promise(function (resolve, reject) {
+        request(base_url + "/account/" + address, function (error, response, body) {
+            if (error) {
+                reject(error)
+            } else {
+                const result = JSON.parse(body)
+                const account = result.account;
+                account.balance = account.balance[0].amount
+                account.time = new Date()
+                account.owner = "cosmos:" + address;
+                resolve(result.account);
+            }
+        })
+    });
 }
 
 cosmos_consumer.on('message', function (message) {
@@ -99,7 +121,7 @@ cosmos_consumer.on('message', function (message) {
                 resp = JSON.parse(body); // Print the HTML for the Google homepage.
                 // todo if height not here we should keep query
                 last_txs = get_tx(height, resp.transactions)
-                format_txs = last_txs.map(x => to_sakamin_db(x))
+                format_txs = last_txs.map(x => to_sakamin_db(address, x))
                 console.log('[Cosmos][Coin Synchronizer] latest transactions obtains for', address, height)
                 const update_tx_msg = {
                     type: MSG_UPDATE_TX_WALLET_TYPE,
@@ -132,6 +154,13 @@ cosmos_consumer.on('message', function (message) {
                 producer.send(payloads, function (err, data) {
                     console.log('[Cosmos][Coin Synchronizer][Publish Latest transactions] add', address, flatten_array(format_txs).length, 'transactions')
                 });
+
+                get_account(address).then(function (account) {
+                    return producer.send([{topic: 'account-update-stream', messages: JSON.stringify(account)}],
+                                         function (err, data) {
+                                             console.log('[Cosmos][Coin Synchronizer][Publish Account update] for', address);
+                                         });
+                })
             });
         }
     } catch(error){

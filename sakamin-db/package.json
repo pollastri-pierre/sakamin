@@ -1,0 +1,13 @@
+{
+    "name": "sakamin-db",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "kafka-node": "^4.1.3",
+        "mongodb": "^3.3.3"
+    }
+}
