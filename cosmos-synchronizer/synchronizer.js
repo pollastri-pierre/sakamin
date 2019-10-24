@@ -44,11 +44,12 @@ const base_url = "https://sgapiv2.certus.one/v1"
 const api_url = base_url + '/transactions?sender=';
 
 function to_sakamin_db(address, raw_tx) {
+    console.log(raw_tx.messages)
     return raw_tx.messages.map((tx, idx) => {
         message = JSON.parse(tx.data);
         let amount = 0;
         let to = '';
-        let from = raw_tx.signatures[idx].address
+        let from = raw_tx.signatures[0].address
         let fees = 0;
         if ('amount' in message) {
             if (message.amount.length > 1) {
