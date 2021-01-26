@@ -1,3 +1,6 @@
+const config = require('/etc/sakamin/config.json');
+const mongoconf = config.mongo;
+
 var kafka = require('kafka-node'),
     Consumer = kafka.Consumer,
     client = new kafka.KafkaClient(),
@@ -34,7 +37,7 @@ handlers["account-update-stream"] = function (db, jsonMsg) {
     collection.insertOne(jsonMsg)
 }
 
-MongoClient.connect('mongodb://localhost:27017', function (err, client) {
+MongoClient.connect(mongoconf.host, function (err, client) {
     if (err) throw err;
     const db = client.db('sakamin');
     cosmos_consumer.on('message', function (message) {

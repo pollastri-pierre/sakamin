@@ -1,0 +1,10 @@
+{
+  "kafka": {
+    "servers" : "localhost:9092", 
+    "zookeeper" : "localhost:2181",
+  },
+  "mongo": {
+    "host": "mongodb://127.0.0.1:27017"
+
+  }
+}
